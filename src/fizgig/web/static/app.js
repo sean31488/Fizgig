@@ -5692,6 +5692,7 @@ function maskSamShow(r) {
         " Needed once, before the first masks."}));
   }
   $("maskSamPreview").disabled = !on || !sam.path || !r.pictures || S.prep.running;
+  if (typeof yoloShow === "function") yoloShow();   // fork: Custom YOLO (yolo_prep.js)
 }
 async function maskSamPreview() {
   $("maskSamPrevState").textContent = "Finding them (the first time loads SAM 3.1, a few seconds) …";

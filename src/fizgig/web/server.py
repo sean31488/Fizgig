@@ -3327,7 +3327,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8", extra=extra)
         if path == "/welcome.mp4":                  # the welcome popup's tour (it ships with Fizgig: no network)
             return self._stream(os.path.join(STATIC_DIR, "welcome_v8.mp4"), attachment=False)  # ranged: it seeks
-        if path in ("/app.js", "/style.css", "/qrcode.js"):
+        if path in ("/app.js", "/style.css", "/qrcode.js", "/yolo_prep.js"):
             return self._file(os.path.join(STATIC_DIR, path[1:]),
                               "application/javascript; charset=utf-8" if path.endswith(".js") else "text/css")
         if path == "/icon.png":
@@ -5026,7 +5026,8 @@ class Handler(BaseHTTPRequestHandler):
                     pics.append({"name": name, "cover": round(cover, 3),
                                  "src": "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()})
                 return self.json({"ok": True, "pictures": pics, "fresh": fresh, "of": len(sammask.pictures(folder))})
-            if path in ("/api/prep/run", "/api/look/scan", "/api/look/move", "/api/masks/make", "/api/masks/edit/save"):
+            if path in ("/api/prep/run", "/api/look/scan", "/api/look/move", "/api/masks/make", "/api/masks/edit/save",
+                        "/api/masks/yolo"):
                 folder = str(b.get("folder") or "")
                 norm = lambda p: os.path.normcase(os.path.abspath(p or "."))
                 with _lock:
@@ -5048,6 +5049,10 @@ class Handler(BaseHTTPRequestHandler):
                     if path == "/api/masks/edit/save":
                         from fizgig.web import mask_edit
                         return self.json(mask_edit.save(folder, str(b.get("name") or ""), str(b.get("png") or "")))
+                    if path == "/api/masks/yolo":   # fork: Custom YOLO (dataset/yolo_prep.py)
+                        captions.unload()
+                        from fizgig.dataset import yolo_prep
+                        return self.json(yolo_prep.start(folder, str(b.get("model") or ""), b.get("pad", 20)))
                     if path == "/api/masks/make":
                         captions.unload()
                         sam = None
